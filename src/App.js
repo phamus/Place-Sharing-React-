@@ -5,8 +5,8 @@ import {
   Redirect,
   Switch
 } from "react-router-dom";
-import Users from "./user/components/pages/Users";
-import NewPlace from "./places/components/pages/NewPlace";
+import Users from "./user/pages/Users";
+import NewPlace from "./places/pages/NewPlace";
 
 const App = () => {
   return (
