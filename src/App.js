@@ -9,6 +9,7 @@ import Users from "./user/pages/Users";
 import NewPlace from "./places/pages/NewPlace";
 import MainNavigation from "./shared/components/Navigation/MainNavigation";
 import UserPlaces from "./places/pages/UserPlaces";
+import UpdatePlaces from "./places/pages/UpdatePlaces";
 
 const App = () => {
   return (
@@ -25,6 +26,10 @@ const App = () => {
           <Route path="/:uid/places" exact>
             <UserPlaces />
           </Route>
+          <Route path="/places/:placeId" exact>
+            <UpdatePlaces />
+          </Route>
+
           <Redirect to="/" />
         </Switch>
       </main>

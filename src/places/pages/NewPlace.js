@@ -92,16 +92,6 @@ const NewPlace = () => {
         onInput={inputHandler}
       />
 
-      <Input
-        id="image"
-        label="Image"
-        element="input"
-        type="file"
-        validators={[VALIDATOR_REQUIRE()]}
-        errorText="Please enter a valid address"
-        onInput={inputHandler}
-      />
-
       <Button type="submit" disabled={!formState.isValid}>
         Add Place
       </Button>
