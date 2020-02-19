@@ -36,7 +36,7 @@
 }
 
 .place-item__modal-content {
-  padding: 0;
+  padding: 0 !important;
 }
 
 .place-item__modal-actions {
