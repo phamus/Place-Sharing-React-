@@ -1,8 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, Fragment } from "react";
 import Input from "../../shared/components/FormElements/Input";
 import {
   VALIDATOR_EMAIL,
-  VALIDATOR_MIN,
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE
 } from "../../shared/util/validator";
@@ -14,9 +13,15 @@ import Card from "../../shared/components/UIElement/Card";
 
 import { AuthContext } from "../../shared/context/auth-context";
 
+import ErrorModal from "../../shared/components/UIElement/ErrorModal";
+
+import LoadingSpinner from "../../shared/components/UIElement/LoadingSpinner";
+
 const Auth = () => {
   const auth = useContext(AuthContext);
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState();
   const [formState, inputHandler, setFormData] = useForm(
     {
       email: {
@@ -37,7 +42,8 @@ const Auth = () => {
     if (isLoginMode) {
     } else {
       try {
-        const response = await fetch("http://localhost:8000/api/user/signup", {
+        setIsLoading(true);
+        const response = await fetch("http://localhost:8000/api/users/signUp", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -50,12 +56,19 @@ const Auth = () => {
         });
 
         const responseData = await response.json();
+
+        if (!response.ok) {
+          throw new Error(responseData.message);
+        }
+
         console.log(responseData);
+        setIsLoading(false);
+        auth.login();
       } catch (error) {
-        console.log(error);
+        setIsLoading(false);
+        setError(error.message || "Something went wrong, please try again");
       }
     }
-    auth.login();
   };
 
   const switchModeHandler = event => {
@@ -76,49 +89,56 @@ const Auth = () => {
     setIsLoginMode(prevMode => !prevMode);
   };
 
+  const errorHandler = () => {
+    setError(null);
+  };
   return (
-    <Card className="authentication">
-      <h2>Login Required</h2>
-      <hr />
-      <form onSubmit={authSubmitHandler}>
-        {!isLoginMode && (
+    <Fragment>
+      <ErrorModal error={error} onClear={errorHandler} />
+      <Card className="authentication">
+        {isLoading && <LoadingSpinner asOverlay />}
+        <h2>Login Required</h2>
+        <hr />
+        <form onSubmit={authSubmitHandler}>
+          {!isLoginMode && (
+            <Input
+              element="input"
+              label="name"
+              id="name"
+              type="text"
+              validators={[VALIDATOR_REQUIRE()]}
+              errorText="Please enter a name"
+              onInput={inputHandler}
+            />
+          )}
           <Input
+            id="email"
+            type="email"
+            label="Email"
             element="input"
-            label="name"
-            id="name"
-            type="text"
-            validators={[VALIDATOR_REQUIRE()]}
-            errorText="Please enter a name"
+            validators={[VALIDATOR_EMAIL()]}
+            errorText="Please enter a valid email"
             onInput={inputHandler}
           />
-        )}
-        <Input
-          id="email"
-          type="email"
-          label="Email"
-          element="input"
-          validators={[VALIDATOR_EMAIL()]}
-          errorText="Please enter a valid email"
-          onInput={inputHandler}
-        />
-        <Input
-          id="password"
-          label="Password"
-          type="password"
-          element="input"
-          validators={[VALIDATOR_MINLENGTH(6)]}
-          errorText="Please enter a valid password with more than 6 characters"
-          onInput={inputHandler}
-        />
-        <Button type="submit" disabled={!formState.isValid}>
-          {isLoginMode ? "Login" : "SignUp"}
+          <Input
+            id="password"
+            label="Password"
+            type="password"
+            element="input"
+            validators={[VALIDATOR_MINLENGTH(6)]}
+            errorText="Please enter a valid password with more than 6 characters"
+            onInput={inputHandler}
+          />
+          <Button type="submit" disabled={!formState.isValid}>
+            {isLoginMode ? "Login" : "SignUp"}
+          </Button>
+        </form>
+        <Button inverse onClick={switchModeHandler}>
+          {" "}
+          Switch to {isLoginMode ? "SignUp" : "Login"}
         </Button>
-      </form>
-      <Button inverse onClick={switchModeHandler}>
-        {" "}
-        Switch to {isLoginMode ? "SignUp" : "Login"}
-      </Button>
-    </Card>
+      </Card>
+    </Fragment>
   );
 };
 
