@@ -6,6 +6,8 @@ import {
   VALIDATOR_REQUIRE
 } from "../../shared/util/validator";
 import { useForm } from "../../shared/hooks/form-hook";
+import { useHttpClient } from "../../shared/hooks/http-hooks";
+
 import Button from "../../shared/components/FormElements/Button";
 
 import "./Auth.css";
@@ -19,9 +21,8 @@ import LoadingSpinner from "../../shared/components/UIElement/LoadingSpinner";
 
 const Auth = () => {
   const auth = useContext(AuthContext);
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [isLoginMode, setIsLoginMode] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState();
   const [formState, inputHandler, setFormData] = useForm(
     {
       email: {
@@ -38,59 +39,40 @@ const Auth = () => {
 
   const authSubmitHandler = async event => {
     event.preventDefault();
-    setIsLoading(true);
 
     if (isLoginMode) {
+      console.log("i got here");
       try {
-        const response = await fetch("http://localhost:8000/api/users/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
+        await sendRequest(
+          "http://localhost:8000/api/users/login",
+          "POST",
+          JSON.stringify({
             email: formState.inputs.email.value,
             password: formState.inputs.password.value
-          })
-        });
+          }),
+          {
+            "Content-Type": "application/json"
+          }
+        );
 
-        const responseData = await response.json();
-        console.log(response);
-        if (!response.ok) {
-          throw new Error(responseData.message);
-        }
-        setIsLoading(false);
         auth.login();
-      } catch (error) {
-        setIsLoading(false);
-        setError(error.message || "Something went wrong, please try again");
-      }
+      } catch (error) {}
     } else {
       try {
-        const response = await fetch("http://localhost:8000/api/users/signUp", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
+        await sendRequest(
+          "http://localhost:8000/api/users/signUp",
+          "POST",
+          JSON.stringify({
             name: formState.inputs.name.value,
             email: formState.inputs.email.value,
             password: formState.inputs.password.value
-          })
-        });
-
-        const responseData = await response.json();
-
-        if (!response.ok) {
-          throw new Error(responseData.message);
-        }
-
-        console.log(responseData);
-        setIsLoading(false);
+          }),
+          {
+            "Content-Type": "application/json"
+          }
+        );
         auth.login();
-      } catch (error) {
-        setIsLoading(false);
-        setError(error.message || "Something went wrong, please try again");
-      }
+      } catch (error) {}
     }
   };
 
@@ -113,7 +95,7 @@ const Auth = () => {
   };
 
   const errorHandler = () => {
-    setError(null);
+    clearError();
   };
   return (
     <Fragment>
