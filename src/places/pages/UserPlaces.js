@@ -1,39 +1,41 @@
-import React from "react";
+import React, { useContext, Fragment, useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-import PlaceList from "../components/PlaceList";
+import { useHttpClient } from "../../shared/hooks/http-hooks";
 
-const dummy_places = [
-  {
-    id: "u1",
-    title: "Lagos City",
-    description: "Beautiful Place in Lagos ",
-    imageUrl: "https://bantuphotos.com/watermark/water-mark-YhuocfMvn0.jpg",
-    address: "CMS Central Park, Marina Road, Lagos",
-    location: {
-      lat: 6.4509483,
-      lng: 3.3870513
-    },
-    creator: "u1"
-  },
-  {
-    id: "u2",
-    title: "Abuja City",
-    description: "Beautiful Place in Abuja ",
-    imageUrl: "https://hotels.ng/guides/wp-content/uploads/2017/06/abuja.jpg",
-    address: "Sheraton Abuja Hotel",
-    location: {
-      lat: 9.0644326,
-      lng: 7.480963
-    },
-    creator: "u2"
-  }
-];
+import PlaceList from "../components/PlaceList";
+import ErrorModal from "../../shared/components/UIElement/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElement/LoadingSpinner";
+
+import { AuthContext } from "../../shared/context/auth-context";
 
 const UserPlaces = () => {
-  const userId = useParams().uid;
-  const loadedPlaces = dummy_places.filter(place => place.creator === userId);
-  return <PlaceList items={loadedPlaces} />;
+  const auth = useContext(AuthContext);
+
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+
+  const [loadedPlaces, setLoadedPlaces] = useState();
+
+  useEffect(() => {
+    const fetchPlaces = async () => {
+      try {
+        const responseData = await sendRequest(
+          `http://localhost:8000/api/places/user/${auth.userId}`
+        );
+
+        setLoadedPlaces(responseData.places);
+      } catch (error) {}
+    };
+    fetchPlaces();
+  }, [sendRequest]);
+
+  return (
+    <Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+      {isLoading && <LoadingSpinner onOverLay />}
+      {!isLoading && loadedPlaces && <PlaceList items={loadedPlaces} />}
+    </Fragment>
+  );
 };
 
 export default UserPlaces;
