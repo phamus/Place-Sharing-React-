@@ -7,9 +7,14 @@ import Modal from "../../shared/components/UIElement/Modal";
 import Map from "../../shared/components/UIElement/Map";
 import { AuthContext } from "../../shared/context/auth-context";
 
+import { useHttpClient } from "../../shared/hooks/http-hooks";
+import ErrorModal from "../../shared/components/UIElement/ErrorModal";
+import LoadingSpinner from "../../shared/components/UIElement/LoadingSpinner";
+
 const PlaceItem = props => {
   const auth = useContext(AuthContext);
   const [showMap, setShowMap] = useState(false);
+  const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
@@ -29,13 +34,21 @@ const PlaceItem = props => {
     setShowConfirmModal(false);
   };
 
-  const confirmDeleteHandler = () => {
-    console.log("Delete");
+  const confirmDeleteHandler = async () => {
     setShowConfirmModal(false);
+    try {
+      await sendRequest(
+        `http://localhost:8000/api/places/${props.id}`,
+        "DELETE"
+      );
+      props.onDelete(props.id);
+    } catch (error) {}
   };
 
   return (
     <Fragment>
+      <ErrorModal error={error} onClear={clearError} />
+
       <Modal
         show={showMap}
         onCancel={closeMapHanlder}
@@ -69,9 +82,9 @@ const PlaceItem = props => {
           be undone
         </p>
       </Modal>
-
       <li className="place-item">
         <Card className="place-item__content">
+          {isLoading && <LoadingSpinner asOverlay />}
           <div className="place-item__image">
             <img src={props.image} alt={props.title} />
           </div>
@@ -85,11 +98,11 @@ const PlaceItem = props => {
               View On Map
             </Button>
 
-            {auth.isLoggedIn && (
+            {auth.userId === props.creatorId && (
               <Button to={`/places/${props.id}`}>Edit</Button>
             )}
 
-            {auth.isLoggedIn && (
+            {auth.userId === props.creatorId && (
               <Button danger onClick={showDeleteWarningHandler}>
                 Delete
               </Button>

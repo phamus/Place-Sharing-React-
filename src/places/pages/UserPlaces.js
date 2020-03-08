@@ -16,11 +16,13 @@ const UserPlaces = () => {
 
   const [loadedPlaces, setLoadedPlaces] = useState();
 
+  const userId = useParams().uid;
+
   useEffect(() => {
     const fetchPlaces = async () => {
       try {
         const responseData = await sendRequest(
-          `http://localhost:8000/api/places/user/${auth.userId}`
+          `http://localhost:8000/api/places/user/${userId}`
         );
 
         setLoadedPlaces(responseData.places);
@@ -29,11 +31,19 @@ const UserPlaces = () => {
     fetchPlaces();
   }, [sendRequest]);
 
+  const placeDeleteHandler = deletedPlaceId => {
+    setLoadedPlaces(prevPlaces =>
+      prevPlaces.filter(place => place.id !== deletedPlaceId)
+    );
+  };
+
   return (
     <Fragment>
       <ErrorModal error={error} onClear={clearError} />
       {isLoading && <LoadingSpinner onOverLay />}
-      {!isLoading && loadedPlaces && <PlaceList items={loadedPlaces} />}
+      {!isLoading && loadedPlaces && (
+        <PlaceList items={loadedPlaces} onDeletePlace={placeDeleteHandler} />
+      )}
     </Fragment>
   );
 };
