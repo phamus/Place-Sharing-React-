@@ -1,12 +1,12 @@
 import React, { useRef } from "react";
 
-import "./ImageUploads.js";
+import "./ImageUpload.css";
 import Button from "./Button";
 
-const ImageUploads = () => {
+const ImageUploads = props => {
   const filePickerRef = useRef();
 
-  const pickedHandler = () => {
+  const pickedHandler = event => {
     console.log(event.target);
   };
   const pickImageHandler = () => {
@@ -18,11 +18,12 @@ const ImageUploads = () => {
       <input
         id={props.id}
         type="file"
-        style={{ display: none }}
+        ref={filePickerRef}
+        style={{ display: "none" }}
         accept=".jpg,.png,.jpeg"
         onChange={pickedHandler}
       />
-      <div className={`image-upload ${props.center && center}`}>
+      <div className={`image-upload ${props.center && "center"}`}>
         <div className="image-upload__preview">
           <img src="" alt="preview" />
         </div>
