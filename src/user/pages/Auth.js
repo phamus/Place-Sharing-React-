@@ -56,22 +56,24 @@ const Auth = () => {
           }
         );
 
-        auth.login(responseData.user.id);
+        auth.login(responseData.user.id, responseData.token);
       } catch (error) {}
     } else {
       try {
-        const formData = new FormData();
-        formData.append("email", formState.inputs.email.value);
-        formData.append("name", formState.inputs.name.value);
-        formData.append("password", formState.inputs.password.value);
-        formData.append("image", formState.inputs.image.value);
-
         const responseData = await sendRequest(
           "http://localhost:8000/api/users/signUp",
           "POST",
-          formData
+          JSON.stringify({
+            email: formState.inputs.email.value,
+            password: formState.inputs.password.value,
+            name: formState.inputs.name.value
+          }),
+          {
+            "Content-Type": "application/json"
+          }
         );
-        auth.login(responseData.user.id);
+
+        auth.login(responseData.user.id, responseData.token);
       } catch (error) {}
     }
   };
@@ -81,8 +83,7 @@ const Auth = () => {
       setFormData(
         {
           ...formState.inputs,
-          name: undefined,
-          image: undefined
+          name: undefined
         },
         formState.inputs.email.isValid && formState.inputs.password.isValid
       );
@@ -90,8 +91,7 @@ const Auth = () => {
       setFormData(
         {
           ...formState.inputs,
-          name: { value: "", isValid: false },
-          image: { value: null, isValid: false }
+          name: { value: "", isValid: false }
         },
         false
       );
@@ -121,9 +121,7 @@ const Auth = () => {
               onInput={inputHandler}
             />
           )}
-          {!isLoginMode && (
-            <ImageUpload center id="image" onInput={inputHandler} />
-          )}
+
           <Input
             id="email"
             type="email"
